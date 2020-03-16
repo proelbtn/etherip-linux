@@ -12,8 +12,17 @@ static int __init etherip_init(void)
 {
   int ret = 0;
 
-  ret = etherip_protocol_init();
+  ret = etherip_device_init();
+  if (ret < 0) goto out1;
 
+  ret = etherip_protocol_init();
+  if (ret < 0) goto out2;
+
+  return ret;
+
+out2:
+  etherip_device_exit();
+out1:
   return ret;
 }
 

@@ -1,5 +1,5 @@
 obj-m += etherip.o
-etherip-m := main.o protocol.o
+etherip-m := main.o device.o protocol.o
 
 all:
 	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
