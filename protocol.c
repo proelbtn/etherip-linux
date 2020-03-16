@@ -41,12 +41,10 @@ int __init etherip_protocol_init(void)
   int ret = 0;
 
   ret = inet_add_protocol(&etherip_v4_protocol, IPPROTO_ETHERIP);
-  if (ret)
-    goto out1;
+  if (ret < 0) goto out1;
 
   ret = inet6_add_protocol(&etherip_v6_protocol, IPPROTO_ETHERIP);
-  if (ret)
-    goto out2;
+  if (ret < 0) goto out2;
   
   return ret;
 
