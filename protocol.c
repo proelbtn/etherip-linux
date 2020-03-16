@@ -38,13 +38,13 @@ static const struct inet6_protocol etherip_v6_protocol = {
 
 int __init etherip_protocol_init(void)
 {
-  int ret = 0;
+  int ret;
 
   ret = inet_add_protocol(&etherip_v4_protocol, IPPROTO_ETHERIP);
-  if (ret < 0) goto out1;
+  if (ret) goto out1;
 
   ret = inet6_add_protocol(&etherip_v6_protocol, IPPROTO_ETHERIP);
-  if (ret < 0) goto out2;
+  if (ret) goto out2;
   
   return ret;
 
@@ -54,7 +54,7 @@ out1:
   return ret;
 }
 
-void __exit etherip_protocol_exit(void)
+void etherip_protocol_exit(void)
 {
   inet6_del_protocol(&etherip_v6_protocol, IPPROTO_ETHERIP);
   inet_del_protocol(&etherip_v4_protocol, IPPROTO_ETHERIP);

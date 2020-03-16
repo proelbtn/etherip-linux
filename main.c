@@ -2,6 +2,7 @@
 #include <linux/kernel.h>
 #include <linux/module.h>
 
+#include "device.h"
 #include "protocol.h"
 
 #define DRIVER_LICENSE "GPL"
@@ -10,13 +11,13 @@
 
 static int __init etherip_init(void)
 {
-  int ret = 0;
+  int ret;
 
   ret = etherip_device_init();
-  if (ret < 0) goto out1;
+  if (ret) goto out1;
 
   ret = etherip_protocol_init();
-  if (ret < 0) goto out2;
+  if (ret) goto out2;
 
   return ret;
 
@@ -29,6 +30,7 @@ out1:
 static void __exit etherip_exit(void)
 {
   etherip_protocol_exit();
+  etherip_device_exit();
 }
 
 module_init(etherip_init);

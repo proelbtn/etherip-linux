@@ -5,4 +5,4 @@
 #define IPPROTO_ETHERIP 97
 
 int __init etherip_protocol_init(void);
-void __exit etherip_protocol_exit(void);
+void etherip_protocol_exit(void);
