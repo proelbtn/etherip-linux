@@ -1,5 +1,6 @@
 #include "protocol.h"
 
+#include <linux/init.h>
 #include <net/protocol.h>
 
 static int etherip_rcv(struct sk_buff *skb)
@@ -35,7 +36,7 @@ static const struct inet6_protocol etherip_v6_protocol = {
   .flags = INET6_PROTO_NOPOLICY | INET6_PROTO_FINAL
 };
 
-int etherip_protocol_init(void)
+int __init etherip_protocol_init(void)
 {
   int ret = 0;
 
@@ -55,7 +56,7 @@ out1:
   return ret;
 }
 
-void etherip_protocol_exit(void)
+void __exit etherip_protocol_exit(void)
 {
   inet6_del_protocol(&etherip_v6_protocol, IPPROTO_ETHERIP);
   inet_del_protocol(&etherip_v4_protocol, IPPROTO_ETHERIP);
