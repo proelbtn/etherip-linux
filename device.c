@@ -1,9 +1,12 @@
 #include "device.h"
 
 #include <linux/if_ether.h>
+#include <linux/if_arp.h>
 #include <linux/in6.h>
 #include <linux/init.h>
 #include <linux/ipv6.h>
+#include <linux/random.h>
+#include <linux/socket.h>
 #include <net/rtnetlink.h>
 
 static int etherip_open(struct net_device *dev)
@@ -26,6 +29,8 @@ static const struct net_device_ops etherip_netdev_ops = {
 	.ndo_open		= etherip_open,
 	.ndo_stop		= etherip_stop,
 	.ndo_start_xmit		= etherip_xmit,
+
+  .ndo_set_mac_address = eth_mac_addr,
 };
 
 static size_t etherip_nl_getsize(const struct net_device *dev)
@@ -57,18 +62,29 @@ static int etherip_newlink(struct net *src_net, struct net_device *dev,
 {
   int ret;
   struct etherip_device *ei = netdev_priv(dev);
+  struct sockaddr sa;
+
   ei->net = src_net;
 
   dev->netdev_ops = &etherip_netdev_ops;
-  dev->mtu = dev->max_mtu = ETH_DATA_LEN - sizeof(struct ipv6hdr) - sizeof(struct etherip_header);
   dev->needed_headroom = sizeof(struct ipv6hdr) + sizeof(struct etherip_header);
 
   memcpy(&ei->local_addr, nla_data(data[IFLA_ETHERIP_LOCAL_ADDR]), sizeof(struct in6_addr));
   memcpy(&ei->remote_addr, nla_data(data[IFLA_ETHERIP_REMOTE_ADDR]), sizeof(struct in6_addr));
 
   ret = register_netdevice(dev);
-  if (ret < 0) return ret;
+  if (ret < 0) goto out1;
 
+  sa.sa_family = ARPHRD_ETHER;
+  sa.sa_data[0] = 0x72;
+  prandom_bytes(sa.sa_data + 1, ETH_ALEN - 1);
+
+  ret = dev_set_mac_address(dev, &sa, NULL);
+  if (ret < 0) goto out1;
+
+  return ret;
+
+out1:
   return ret;
 }
 
@@ -76,7 +92,14 @@ static void etherip_setup(struct net_device *dev)
 {
   struct etherip_device *ei = netdev_priv(dev);
 
-  dev->netdev_ops = &etherip_netdev_ops;
+  dev->type = ARPHRD_ETHER;
+  dev->addr_len = ETH_ALEN;
+  dev->mtu = ETH_DATA_LEN - sizeof(struct ipv6hdr) - sizeof(struct etherip_header);
+  dev->min_mtu = 64; // TODO: fix
+  dev->max_mtu = dev->mtu;
+  memset(dev->broadcast, 0xff, ETH_ALEN);
+
+  dev->flags = IFF_BROADCAST | IFF_MULTICAST;
 
   memset(ei, 0, sizeof(*ei));
 }
