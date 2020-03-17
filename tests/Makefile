@@ -1,4 +1,7 @@
-all: newlink
+all: newlink getlink
 
-newlink:
-	gcc -I /usr/include/libnl3 -I .. $@.c -l nl-3
+newlink: newlink.c
+	gcc -I /usr/include/libnl3 -I .. -o $@ $^ -l nl-3
+
+getlink: getlink.c
+	gcc -I /usr/include/libnl3 -I .. -o $@ $^ -l nl-3

@@ -14,14 +14,6 @@ enum {
 
 #define IFLA_ETHERIP_MAX (__IFLA_ETHERIP_MAX - 1)
 
-static int callback(struct nl_msg *msg, void *arg) {
-  for (int i = 0; i < 256; i++) {
-    printf("%c", ((char *)msg)[i]);
-  }
-  printf("\n");
-  return 0;
-}
-
 int main(int argc, const char *argv[]) {
   if (argc != 4) {
     printf("Usage:\n");
@@ -57,11 +49,6 @@ int main(int argc, const char *argv[]) {
   remote_addr_data = nl_data_alloc(&remote_addr, sizeof(remote_addr));
 
   sk = nl_socket_alloc();
-
-  nl_socket_modify_cb(sk, NL_CB_INVALID, NL_CB_DEBUG, callback, NULL);
-  nl_socket_modify_cb(sk, NL_CB_VALID, NL_CB_DEBUG, callback, NULL);
-  nl_socket_modify_cb(sk, NL_CB_FINISH, NL_CB_DEBUG, callback, NULL);
-
   nl_connect(sk, NETLINK_ROUTE);
 
   if (!(msg = nlmsg_alloc_simple(RTM_NEWLINK, NLM_F_CREATE))) return 1;
@@ -77,9 +64,7 @@ int main(int argc, const char *argv[]) {
     nla_nest_end(msg, infodata);
   nla_nest_end(msg, linkinfo);
 
-  nl_send_auto(sk, msg);
-
-  nl_recvmsgs_default(sk);
+  nl_send_sync(sk, msg);
 
   nl_socket_free(sk);
 
